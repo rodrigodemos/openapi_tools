@@ -12,6 +12,21 @@ def save_json_file(file_path, data):
     with open(file_path, 'w') as file:
         json.dump(data, file, indent=4)
 
+def remove_x_ms_examples(obj):
+    """
+    Recursively remove all occurrences of 'x-ms-examples' from a JSON object.
+    """
+    if isinstance(obj, dict):
+        # If the object is a dictionary, check each key
+        if 'x-ms-examples' in obj:
+            del obj['x-ms-examples']
+        for key in obj:
+            remove_x_ms_examples(obj[key])
+    elif isinstance(obj, list):
+        # If the object is a list, iterate through its elements
+        for item in obj:
+            remove_x_ms_examples(item)
+
 if __name__ == "__main__":
     if len(sys.argv) < 2 or sys.argv[1] == "--help":
         print("Usage: python ado_openapi_aiagents_prep.py <specfile>")
@@ -29,10 +44,7 @@ if __name__ == "__main__":
             # print(data['paths'][item][operation]['operationId'])
 
     # Remove all the x-ms-examples from the JSON file
-    for item in data['paths']:
-        for operation in data['paths'][item]:
-            if 'x-ms-examples' in data['paths'][item][operation]:
-                del data['paths'][item][operation]['x-ms-examples']
+    remove_x_ms_examples(data)
     
     # Save file with same name and the current timestamp suffix in yyyymmdd_hhmmss format
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
